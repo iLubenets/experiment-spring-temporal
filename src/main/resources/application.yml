@@ -1,0 +1,37 @@
+# Spring
+spring:
+  application:
+    name: spring-temporal
+  main:
+    banner-mode: 'off'
+  flyway:
+    enabled: true
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: temporal
+    password: temporal
+    type: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: org.postgresql.Driver
+  threads:
+    virtual:
+      enabled: true
+  # temporal specific configs
+  temporal:
+    namespace: default
+    connection:
+      target: localhost:7233
+    # (Note following configuration are not set by default but serve more as reference)
+    #    workers:
+    #      - task-queue: DemoTaskQueue
+    #        capacity:
+    #          max-concurrent-workflow-task-pollers: 6
+    #          max-concurrent-activity-task-pollers: 6
+    #        rate-limits:
+    #          max-worker-activities-per-second: 3
+    #          max-task-queue-activities-per-second: 3
+    #    workflow-cache:
+    #      max-instances: 10
+    #      max-threads: 10
+    workersAutoDiscovery:
+      packages: io.github.ilubenets.springtemporal.application
+  # data source config for some samples that need it

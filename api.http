@@ -1,0 +1,28 @@
+### Create Document
+POST http://localhost:8080/api/document
+Content-Type: application/json
+
+{
+    "orderId": "27",
+    "productName": "RENT",
+    "charges": [
+        {
+            "code": "line 1",
+            "amount": 100,
+            "currency": "USD"
+        },
+        {
+            "code": "line 2",
+            "amount": 200,
+            "currency": "USD"
+        }
+    ],
+    "config": {
+        "activitiesToFail": [
+            "-bookDocument"
+        ],
+        "numberCreationSeconds": 1
+    }
+}
+
+###
