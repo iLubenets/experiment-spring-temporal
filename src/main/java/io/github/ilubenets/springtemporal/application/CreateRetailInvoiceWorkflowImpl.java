@@ -1,12 +1,14 @@
 package io.github.ilubenets.springtemporal.application;
 
 import java.time.Duration;
+import java.util.Map;
 
 import io.github.ilubenets.springtemporal.domain.Document;
 import io.github.ilubenets.springtemporal.domain.ResolveIncidentSignal;
 import io.temporal.activity.ActivityOptions;
 import io.temporal.common.RetryOptions;
 import io.temporal.failure.ActivityFailure;
+import io.temporal.failure.ApplicationFailure;
 import io.temporal.spring.boot.WorkflowImpl;
 import io.temporal.workflow.Workflow;
 import org.slf4j.Logger;
@@ -19,55 +21,55 @@ public final class CreateRetailInvoiceWorkflowImpl
 
     public static final String TASK_QUEUE = "CreateRetailInvoiceWorkflowQueue";
 
-    private final DocumentNumberActivities documentActivities;
-    private final AccountingActivities accountingActivities;
-    private final ExperimentActivities experimentActivities;
+    private final DocumentNumberActivities documentActivities = Workflow.newActivityStub(
+        DocumentNumberActivities.class,
+        ActivityOptions.newBuilder()
+            .setTaskQueue(DocumentNumberActivitiesImpl.TASK_QUEUE) // reference to specific act impl by queue
+            .setStartToCloseTimeout(Duration.ofSeconds(60))
+            .setRetryOptions(
+                RetryOptions.newBuilder()
+                    .setMaximumAttempts(2)
+                    .setInitialInterval(Duration.ofSeconds(1))
+                    .build()
+            )
+            .build()
+    );
+    private final AccountingActivities accountingActivities = Workflow.newActivityStub(
+        AccountingActivities.class,
+        ActivityOptions.newBuilder()
+            .setTaskQueue(AccountingActivitiesImpl.TASK_QUEUE)
+            .setStartToCloseTimeout(Duration.ofSeconds(60))
+            .setRetryOptions(
+                RetryOptions.newBuilder()
+                    .setMaximumAttempts(2)
+                    .setInitialInterval(Duration.ofSeconds(10))
+                    .build()
+            )
+            .build()
+    );
+    private final ExperimentActivities experimentActivities = Workflow.newActivityStub(
+        ExperimentActivities.class,
+        ActivityOptions.newBuilder()
+            .setTaskQueue(ExperimentActivitiesImpl.TASK_QUEUE)
+            .setStartToCloseTimeout(Duration.ofMinutes(1))
+            .setRetryOptions(
+                RetryOptions.newBuilder()
+                    .setMaximumAttempts(5)
+                    .setBackoffCoefficient(2.0)
+                    .setInitialInterval(Duration.ofSeconds(5))
+                    .setMaximumInterval(Duration.ofMinutes(1))
+                    .build()
+            )
+            .build()
+    );
 
     private ResolveIncidentSignal resolveIncidentSignal = null;
 
     public CreateRetailInvoiceWorkflowImpl() {
-        this.documentActivities = Workflow.newActivityStub(
-            DocumentNumberActivities.class,
-            ActivityOptions.newBuilder()
-                .setTaskQueue(DocumentNumberActivitiesImpl.TASK_QUEUE) // reference to specific act impl by queue
-                .setStartToCloseTimeout(Duration.ofSeconds(60))
-                .setRetryOptions(
-                    RetryOptions.newBuilder()
-                        .setMaximumAttempts(2)
-                        .setInitialInterval(Duration.ofSeconds(1))
-                        .build()
-                )
-                .build()
-        );
-        this.accountingActivities = Workflow.newActivityStub(
-            AccountingActivities.class,
-            ActivityOptions.newBuilder()
-                .setTaskQueue(AccountingActivitiesImpl.TASK_QUEUE)
-                .setStartToCloseTimeout(Duration.ofSeconds(60))
-                .setRetryOptions(
-                    RetryOptions.newBuilder()
-                        .setMaximumAttempts(2)
-                        .setInitialInterval(Duration.ofSeconds(10))
-                        .build()
-                )
-                .build()
-        );
-        this.experimentActivities = Workflow.newActivityStub(
-            ExperimentActivities.class,
-            ActivityOptions.newBuilder()
-                .setTaskQueue(ExperimentActivitiesImpl.TASK_QUEUE)
-                .setStartToCloseTimeout(Duration.ofMinutes(1))
-                .setRetryOptions(
-                    RetryOptions.newBuilder()
-                        .setMaximumAttempts(5)
-                        .setInitialInterval(Duration.ofMinutes(5))
-                        .build()
-                )
-                .build()
-        );
     }
 
     // Workflow logic requirements: https://docs.temporal.io/develop/java/core-application#workflow-logic-requirements
+    // Core: https://docs.temporal.io/develop/java/core-application
     @Override
     public void create(final Document document) {
         var processId = document.processId();
@@ -78,17 +80,20 @@ public final class CreateRetailInvoiceWorkflowImpl
 
         var documentId = accountingActivities.createDocumentId(processId);
 
+        if (document.productName().equals("FATAL")) {
+            throw ApplicationFailure.newNonRetryableFailure("FATAL error", "FATAL_ERROR");
+        }
+
         var number = generateNumberAndBookDocumentWithRetries(document, documentId);
         documentActivities.confirmDocumentNumber(processId, number);
-
+        Workflow.upsertMemo(Map.of("documentNumber", number));
 
         var version = Workflow.getVersion("ChangeSucceedOnlyAfter3Attempts", 0, 1);
         if (version == 0) {
             experimentActivities.succeedOnlyAfter3Attempts();
         } else {
-            experimentActivities.succeedOnlyAfter1Attempt();
+            experimentActivities.succeedOnlyAfter2Attempt();
         }
-
 
         LOG.info("WF: done {}", document);
     }
@@ -128,9 +133,8 @@ public final class CreateRetailInvoiceWorkflowImpl
     }
 
     @Override
-    public void retryIncidentSignal(final ResolveIncidentSignal signal) {
-        LOG.info("WF: Received retryIncidentSignal {}", signal);
+    public void resolveIncidentSignal(final ResolveIncidentSignal signal) {
+        LOG.info("WF: Received ResolveIncidentSignal {}", signal);
         this.resolveIncidentSignal = signal;
     }
-
 }

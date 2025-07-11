@@ -4,3 +4,9 @@ spring:
     url: jdbc:tc:postgresql:17.0:///test
     username: test
     password: test
+  temporal:
+    namespace: default
+    connection:
+      target: localhost:7233
+    test-server:
+      enabled: true

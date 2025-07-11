@@ -10,5 +10,5 @@ public interface ExperimentActivities {
     void succeedOnlyAfter3Attempts();
 
     @ActivityMethod
-    void succeedOnlyAfter1Attempt();
+    void succeedOnlyAfter2Attempt();
 }

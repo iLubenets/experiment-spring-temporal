@@ -1,7 +1,5 @@
 package io.github.ilubenets.springtemporal.adapter.handler;
 
-import static org.apache.commons.lang3.RandomStringUtils.insecure;
-
 import java.util.Map;
 import java.util.Optional;
 
@@ -65,8 +63,7 @@ public final class DocumentController {
                 .setWorkflowId(processId)
                 .setWorkflowIdReusePolicy(WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_ALLOW_DUPLICATE_FAILED_ONLY)
                 .setMemo(Map.of(
-                    "memoKey", "memoValue",
-                    "startedBy", insecure().nextAlphabetic(3) + " " + insecure().nextAlphabetic(4)
+                    "productName", document.productName()
                 ))
                 .build()
         );

@@ -21,10 +21,10 @@ public final class ExperimentActivitiesImpl
     }
 
     @Override
-    public void succeedOnlyAfter1Attempt() {
+    public void succeedOnlyAfter2Attempt() {
         var ctx = Activity.getExecutionContext();
         var attempt = ctx.getInfo().getAttempt();
-        if (attempt <= 1) {
+        if (attempt <= 2) {
             throw new IllegalStateException("Attempt " + attempt + " is less than 3");
         }
     }

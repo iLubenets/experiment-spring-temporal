@@ -12,6 +12,6 @@ public interface CreateRetailInvoiceWorkflow {
     @WorkflowMethod
     void create(Document document);
 
-    @SignalMethod
-    void retryIncidentSignal(ResolveIncidentSignal signal);
+    @SignalMethod(name = "ResolveIncidentSignal")
+    void resolveIncidentSignal(ResolveIncidentSignal signal);
 }

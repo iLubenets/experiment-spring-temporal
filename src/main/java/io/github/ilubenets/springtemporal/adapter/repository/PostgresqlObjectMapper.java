@@ -33,6 +33,10 @@ public final class PostgresqlObjectMapper {
         // util
     }
 
+    public static ObjectMapper instance() {
+        return OBJECT_MAPPER;
+    }
+
     public static String toJson(final Object object) {
         try {
             return OBJECT_MAPPER.writeValueAsString(object);

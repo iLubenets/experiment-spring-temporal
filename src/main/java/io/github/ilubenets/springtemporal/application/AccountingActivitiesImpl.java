@@ -42,13 +42,10 @@ public class AccountingActivitiesImpl
         documentPostgresRepository.update(document.setAccountingId(UUID.randomUUID().toString()));
     }
 
-    // TODO: important to read
     // temporal does not handle db transactions
     @Override
     @Transactional
     public Document.Total calculateTotal(final String processId) {
-        // TODO: important to read
-        // we can access reach context
         var ctx = Activity.getExecutionContext();
         var document = documentPostgresRepository.require(processId);
         LOG.info("ACT: calculateTotal {} current total {}", processId, document.total());
