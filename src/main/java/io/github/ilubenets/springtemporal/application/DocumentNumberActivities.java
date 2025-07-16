@@ -1,5 +1,6 @@
 package io.github.ilubenets.springtemporal.application;
 
+import io.github.ilubenets.springtemporal.domain.Document;
 import io.temporal.activity.ActivityInterface;
 import io.temporal.activity.ActivityMethod;
 
@@ -14,4 +15,10 @@ public interface DocumentNumberActivities {
 
     @ActivityMethod
     void cancelDocumentNumber(String documentNumber);
+
+    @ActivityMethod
+    Document getDocument(String processId);
+
+    @ActivityMethod
+    void updateDocument(Document document);
 }

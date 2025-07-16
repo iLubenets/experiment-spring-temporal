@@ -7,8 +7,8 @@ import io.github.ilubenets.springtemporal.domain.Document;
 import io.github.ilubenets.springtemporal.domain.ResolveIncidentSignal;
 import io.temporal.activity.ActivityOptions;
 import io.temporal.common.RetryOptions;
+import io.temporal.common.SearchAttributeKey;
 import io.temporal.failure.ActivityFailure;
-import io.temporal.failure.ApplicationFailure;
 import io.temporal.spring.boot.WorkflowImpl;
 import io.temporal.workflow.Workflow;
 import org.slf4j.Logger;
@@ -20,6 +20,13 @@ public final class CreateRetailInvoiceWorkflowImpl
     private static final Logger LOG = Workflow.getLogger(CreateRetailInvoiceWorkflowImpl.class);
 
     public static final String TASK_QUEUE = "CreateRetailInvoiceWorkflowQueue";
+
+    public enum State {
+        OK,
+        DONE,
+        INCIDENT,
+        RETRY_AFTER_INCIDENT,
+    }
 
     private final DocumentNumberActivities documentActivities = Workflow.newActivityStub(
         DocumentNumberActivities.class,
@@ -80,10 +87,6 @@ public final class CreateRetailInvoiceWorkflowImpl
 
         var documentId = accountingActivities.createDocumentId(processId);
 
-        if (document.productName().equals("FATAL")) {
-            throw ApplicationFailure.newNonRetryableFailure("FATAL error", "FATAL_ERROR");
-        }
-
         var number = generateNumberAndBookDocumentWithRetries(document, documentId);
         documentActivities.confirmDocumentNumber(processId, number);
         Workflow.upsertMemo(Map.of("documentNumber", number));
@@ -123,7 +126,9 @@ public final class CreateRetailInvoiceWorkflowImpl
                 if (totalAttempts < maxAttempts) {
                     Workflow.sleep(retryDelay);
                 } else {
+                    Workflow.upsertTypedSearchAttributes(SearchAttributeKey.forKeyword("State").valueSet(State.INCIDENT.name()));
                     Workflow.await(Duration.ofDays(300), () -> resolveIncidentSignal != null);
+                    Workflow.upsertTypedSearchAttributes(SearchAttributeKey.forKeyword("State").valueSet(State.RETRY_AFTER_INCIDENT.name()));
                     isFailBookDocument = false;
                     maxAttempts += 1;
                     resolveIncidentSignal = null;
@@ -136,5 +141,15 @@ public final class CreateRetailInvoiceWorkflowImpl
     public void resolveIncidentSignal(final ResolveIncidentSignal signal) {
         LOG.info("WF: Received ResolveIncidentSignal {}", signal);
         this.resolveIncidentSignal = signal;
+    }
+
+    @Override
+    public Document getDocument() {
+        return documentActivities.getDocument(Workflow.getInfo().getWorkflowId());
+    }
+
+    @Override
+    public void updateDocument(final Document document) {
+        documentActivities.updateDocument(document);
     }
 }

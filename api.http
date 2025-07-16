@@ -3,7 +3,7 @@ POST http://localhost:8080/api/document
 Content-Type: application/json
 
 {
-    "orderId": "36",
+    "orderId": "50",
     "productName": "RENT",
     "charges": [
         {
@@ -21,7 +21,7 @@ Content-Type: application/json
         "activitiesToFail": [
             "bookDocument"
         ],
-        "numberCreationSeconds": 5
+        "numberCreationSeconds": 2
     }
 }
 

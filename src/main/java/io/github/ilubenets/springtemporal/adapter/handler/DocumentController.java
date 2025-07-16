@@ -1,6 +1,5 @@
 package io.github.ilubenets.springtemporal.adapter.handler;
 
-import java.util.Map;
 import java.util.Optional;
 
 import io.github.ilubenets.springtemporal.adapter.repository.DocumentPostgresRepository;
@@ -10,6 +9,8 @@ import io.github.ilubenets.springtemporal.domain.Document;
 import io.temporal.api.enums.v1.WorkflowIdReusePolicy;
 import io.temporal.client.WorkflowClient;
 import io.temporal.client.WorkflowOptions;
+import io.temporal.common.SearchAttributeKey;
+import io.temporal.common.SearchAttributes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
@@ -62,9 +63,13 @@ public final class DocumentController {
                 .setTaskQueue(CreateRetailInvoiceWorkflowImpl.TASK_QUEUE) // reference to specific wf impl
                 .setWorkflowId(processId)
                 .setWorkflowIdReusePolicy(WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_ALLOW_DUPLICATE_FAILED_ONLY)
-                .setMemo(Map.of(
-                    "productName", document.productName()
-                ))
+                .setTypedSearchAttributes(
+                    SearchAttributes.newBuilder()
+                        .set(SearchAttributeKey.forKeyword("State"), CreateRetailInvoiceWorkflowImpl.State.OK.name())
+                        .set(SearchAttributeKey.forKeyword("ProductName"), document.productName())
+                        .set(SearchAttributeKey.forText("OrderId"), document.processId())
+                        .build()
+                )
                 .build()
         );
         WorkflowClient.start(workflow::create, document);

@@ -3,7 +3,9 @@ package io.github.ilubenets.springtemporal.application;
 import io.github.ilubenets.springtemporal.adapter.client.ClientException;
 import io.github.ilubenets.springtemporal.adapter.client.DocumentNumberClient;
 import io.github.ilubenets.springtemporal.adapter.repository.DocumentPostgresRepository;
+import io.github.ilubenets.springtemporal.domain.Document;
 import io.temporal.activity.Activity;
+import io.temporal.failure.ApplicationFailure;
 import io.temporal.spring.boot.ActivityImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +37,9 @@ public class DocumentNumberActivitiesImpl
     @Override
     public String generateDocumentNumber(final String processId) {
         var document = documentPostgresRepository.require(processId);
+        if (document.productName().equals("FATAL")) {
+            throw ApplicationFailure.newNonRetryableFailure("FATAL error", "FATAL_ERROR");
+        }
         try {
             return documentNumberClient.generate(document.productName(), document.config());
         } catch (ClientException e) {
@@ -60,5 +65,15 @@ public class DocumentNumberActivitiesImpl
         } catch (ClientException e) {
             throw Activity.wrap(e);
         }
+    }
+
+    @Override
+    public Document getDocument(final String processId) {
+        return documentPostgresRepository.require(processId);
+    }
+
+    @Override
+    public void updateDocument(final Document document) {
+        documentPostgresRepository.update(document);
     }
 }
