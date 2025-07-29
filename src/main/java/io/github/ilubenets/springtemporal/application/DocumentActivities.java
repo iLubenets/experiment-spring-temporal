@@ -5,7 +5,7 @@ import io.temporal.activity.ActivityInterface;
 import io.temporal.activity.ActivityMethod;
 
 @ActivityInterface
-public interface DocumentNumberActivities {
+public interface DocumentActivities {
 
     @ActivityMethod
     String generateDocumentNumber(String processId);
@@ -17,7 +17,7 @@ public interface DocumentNumberActivities {
     void cancelDocumentNumber(String documentNumber);
 
     @ActivityMethod
-    Document getDocument(String processId);
+    Document requireDocument(String processId);
 
     @ActivityMethod
     void updateDocument(Document document);

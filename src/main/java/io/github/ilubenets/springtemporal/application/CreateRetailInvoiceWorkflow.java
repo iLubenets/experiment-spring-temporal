@@ -12,7 +12,7 @@ import io.temporal.workflow.WorkflowMethod;
 public interface CreateRetailInvoiceWorkflow {
 
     @WorkflowMethod
-    void create(Document document);
+    void create(String processId);
 
     @SignalMethod(name = "ResolveIncidentSignal")
     void resolveIncidentSignal(ResolveIncidentSignal signal);

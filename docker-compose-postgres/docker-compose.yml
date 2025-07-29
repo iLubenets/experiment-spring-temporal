@@ -1,0 +1,20 @@
+version: "3.5"
+services:
+  postgresql:
+    container_name: temporal-postgresql
+    environment:
+      POSTGRES_PASSWORD: temporal
+      POSTGRES_USER: temporal
+    image: postgres:16
+    networks:
+      - temporal-network
+    ports:
+      - 5432:5432 # patch: expose Postgres for local
+    volumes:
+      - postgresql_data:/var/lib/postgresql/data
+networks:
+  temporal-network:
+    driver: bridge
+    name: temporal-network
+volumes:
+  postgresql_data:

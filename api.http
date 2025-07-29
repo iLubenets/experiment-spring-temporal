@@ -3,8 +3,8 @@ POST http://localhost:8080/api/document
 Content-Type: application/json
 
 {
-    "orderId": "50",
-    "productName": "RENT",
+    "orderId": "order-222",
+    "example": "INCIDENT_CHILD_WF",
     "charges": [
         {
             "code": "line 1",
@@ -16,13 +16,7 @@ Content-Type: application/json
             "amount": 200,
             "currency": "USD"
         }
-    ],
-    "config": {
-        "activitiesToFail": [
-            "bookDocument"
-        ],
-        "numberCreationSeconds": 2
-    }
+    ]
 }
 
 ###

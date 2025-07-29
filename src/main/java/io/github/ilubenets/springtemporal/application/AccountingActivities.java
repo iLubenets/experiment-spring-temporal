@@ -11,8 +11,5 @@ public interface AccountingActivities {
     String createDocumentId(String processId);
 
     @ActivityMethod
-    void bookDocument(String processId, String documentId, String documentNumber, boolean isFail);
-
-    @ActivityMethod
-    Document.Total calculateTotal(String processId);
+    Document bookDocument(String processId, String documentId, String documentNumber, boolean isFail);
 }

@@ -1,15 +1,20 @@
 package io.github.ilubenets.springtemporal.application;
 
-import java.util.UUID;
-
 import io.github.ilubenets.springtemporal.adapter.repository.DocumentPostgresRepository;
 import io.github.ilubenets.springtemporal.domain.Document;
 import io.temporal.activity.Activity;
+import io.temporal.activity.ActivityOptions;
+import io.temporal.common.RetryOptions;
 import io.temporal.spring.boot.ActivityImpl;
+import io.temporal.workflow.Workflow;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Duration;
+import java.util.UUID;
 
 @Component
 @ActivityImpl(taskQueues = AccountingActivitiesImpl.TASK_QUEUE)
@@ -26,13 +31,30 @@ public class AccountingActivitiesImpl
         this.documentPostgresRepository = documentPostgresRepository;
     }
 
-    @Override
-    public String createDocumentId(final String processId) {
-        return "sap" + System.currentTimeMillis();
+    public static AccountingActivities newActivityStub() {
+        return Workflow.newActivityStub(
+            AccountingActivities.class,
+            ActivityOptions.newBuilder()
+                .setTaskQueue(AccountingActivitiesImpl.TASK_QUEUE)
+                .setStartToCloseTimeout(Duration.ofSeconds(60))
+                .setRetryOptions(
+                    RetryOptions.newBuilder()
+                        .setMaximumAttempts(2)
+                        .setInitialInterval(Duration.ofSeconds(10))
+                        .build()
+                )
+                .build()
+        );
     }
 
     @Override
-    public void bookDocument(final String processId, final String documentId, final String documentNumber, final boolean isFail) {
+    public String createDocumentId(final String processId) {
+        return "sap-" + RandomStringUtils.secure().nextNumeric(5);
+    }
+
+    @Transactional
+    @Override
+    public Document bookDocument(final String processId, final String documentId, final String documentNumber, final boolean isFail) {
         LOG.info("ACT: accountingBookDocument {} : {}", documentId, documentNumber);
         var document = documentPostgresRepository.require(processId);
         if (isFail) {
@@ -40,24 +62,7 @@ public class AccountingActivitiesImpl
             throw Activity.wrap(failReason);
         }
         documentPostgresRepository.update(document.setAccountingId(UUID.randomUUID().toString()));
-    }
 
-    // temporal does not handle db transactions
-    @Override
-    @Transactional
-    public Document.Total calculateTotal(final String processId) {
-        var ctx = Activity.getExecutionContext();
-        var document = documentPostgresRepository.require(processId);
-        LOG.info("ACT: calculateTotal {} current total {}", processId, document.total());
-
-        var total = new Document.Total(
-            document.charges().stream().mapToLong(Document.Charge::amount).sum(),
-            document.charges().getFirst().currency()
-        );
-        documentPostgresRepository.update(document.setTotal(total));
-        if (ctx.getInfo().getAttempt() <= 1) {
-            throw new RuntimeException("ACT: 1st attempt always fails");
-        }
-        return total;
+        return document;
     }
 }

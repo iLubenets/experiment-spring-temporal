@@ -1,13 +1,14 @@
 package io.github.ilubenets.springtemporal.adapter.handler;
 
+import io.github.ilubenets.springtemporal.domain.Document;
+
 import java.util.List;
 import java.util.Set;
 
 public record DocumentRequest(
     String orderId,
-    String productName,
-    List<Charge> charges,
-    ProcessConfig config
+    Document.ExampleType example,
+    List<Charge> charges
 ) {
 
     public record ProcessConfig(
