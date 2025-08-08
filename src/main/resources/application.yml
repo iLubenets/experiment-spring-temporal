@@ -17,9 +17,11 @@ spring:
       enabled: true
   # temporal specific configs
   temporal:
-    namespace: default
+    namespace: quickstart-payment-orchestrator.i7dec
     connection:
-      target: localhost:7233
+      target: eu-west-1.aws.api.temporal.io:7233 #localhost:7233
+      api-key: eyJhbGciOiJFUzI1NiIsImtpZCI6Ild2dHdhQSJ9.eyJhY2NvdW50X2lkIjoiaTdkZWMiLCJhdWQiOlsidGVtcG9yYWwuaW8iXSwiZXhwIjoxNzYzMDQwMTM5LCJpc3MiOiJ0ZW1wb3JhbC5pbyIsImp0aSI6Iml1eWYzYmw0Mm5CNmVWNEtnc2oyMEpSekFPWXlEM0RBIiwia2V5X2lkIjoiaXV5ZjNibDQybkI2ZVY0S2dzajIwSlJ6QU9ZeUQzREEiLCJzdWIiOiJjYmIxZGEzZjNkOGU0ZTRlYjg2ZDU5YWQ5OWNhNmMzNSJ9.Hb89ljuZVtTkVHQ6ReLrLPFeYT9GoiVGsdUMcqh5tgVlB3Xdd6AgWOg9sY7b_5YvQ_4e63eledFIBneOk1r7mw
+      enable-https: true
     # (Note following configuration are not set by default but serve more as reference)
     #    workers:
     #      - task-queue: DemoTaskQueue

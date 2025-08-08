@@ -17,11 +17,11 @@ import java.time.Duration;
 import static io.github.ilubenets.springtemporal.application.SearchAttributeKeys.STATE;
 import static io.github.ilubenets.springtemporal.application.SearchAttributeKeys.State;
 
-@WorkflowImpl(taskQueues = CreateRetailInvoiceWorkflowImpl.TASK_QUEUE)
-public final class CreateRetailInvoiceWorkflowImpl
-    implements CreateRetailInvoiceWorkflow {
+@WorkflowImpl(taskQueues = CreateInvoiceWorkflowImpl.TASK_QUEUE)
+public final class CreateInvoiceWorkflowImpl
+    implements CreateInvoiceWorkflow {
 
-    private static final Logger LOG = Workflow.getLogger(CreateRetailInvoiceWorkflowImpl.class);
+    private static final Logger LOG = Workflow.getLogger(CreateInvoiceWorkflowImpl.class);
 
     public static final String TASK_QUEUE = "CreateRetailInvoiceWorkflowQueue";
 

@@ -1,8 +1,8 @@
 package io.github.ilubenets.springtemporal.adapter.handler;
 
 import io.github.ilubenets.springtemporal.adapter.repository.DocumentPostgresRepository;
-import io.github.ilubenets.springtemporal.application.CreateRetailInvoiceWorkflow;
-import io.github.ilubenets.springtemporal.application.CreateRetailInvoiceWorkflowImpl;
+import io.github.ilubenets.springtemporal.application.CreateInvoiceWorkflow;
+import io.github.ilubenets.springtemporal.application.CreateInvoiceWorkflowImpl;
 import io.github.ilubenets.springtemporal.application.SearchAttributeKeys;
 import io.github.ilubenets.springtemporal.domain.Document;
 import io.temporal.api.enums.v1.WorkflowIdReusePolicy;
@@ -55,9 +55,9 @@ public final class DocumentController {
 
         // async
         var workflow = client.newWorkflowStub(
-            CreateRetailInvoiceWorkflow.class,
+            CreateInvoiceWorkflow.class,
             WorkflowOptions.newBuilder()
-                .setTaskQueue(CreateRetailInvoiceWorkflowImpl.TASK_QUEUE) // reference to specific wf impl
+                .setTaskQueue(CreateInvoiceWorkflowImpl.TASK_QUEUE) // reference to specific wf impl
                 .setWorkflowId(processId)
                 .setWorkflowIdReusePolicy(WorkflowIdReusePolicy.WORKFLOW_ID_REUSE_POLICY_ALLOW_DUPLICATE_FAILED_ONLY)
                 .setTypedSearchAttributes(
